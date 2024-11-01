@@ -1,89 +1,85 @@
-import apiKey from './config.js' ;
-const container=document.querySelector(".container"); //City Search
-const cityName=document.querySelector(".cityName"); //City Name
-const getWeatherBtn=document.getElementById("getWeatherBtn"); // Get Weather Button
-const result=document.querySelector(".result"); //Weather Data
+const container = document.querySelector(".container"); // City Search
+const cityName = document.querySelector(".cityName"); // City Name
+const getWeatherBtn = document.getElementById("getWeatherBtn"); // Get Weather Button
+const result = document.querySelector(".result"); // Weather Data
 
-
-//capitalizing first letter
+// Capitalizing the first letter of each word in the city name
 function capitalizeCityName(city) {
-    return city.split(' ')
-               .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-               .join(' ');
+    return city
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 }
 
-
-
-// Function to fetch and display weather
+// Function to fetch and display weather data using the serverless function
 const getWeather = async () => {
-    const city= cityName.value.trim();
+    const city = cityName.value.trim();
 
-    if(city){
-        container.style.display = 'none';  //hides the input page
-        result.innerHTML = `<p>Fetching weather for <strong>${capitalizeCityName(city)}</strong>....</p>`
-        result.style.display= 'block'; //Show the weather result
+    if (city) {
+        container.style.display = 'none'; // Hide the input page
+        result.innerHTML = `<p>Fetching weather for <strong>${capitalizeCityName(city)}</strong>...</p>`;
+        result.style.display = 'block'; // Show the weather result
 
-        try{
-            //Fetch weather data from OpenWeatherMap API
-            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+        try {
+            // Fetch weather data from Netlify serverless function
+            const url = `/.netlify/functions/getWeather?city=${city}`;
             const response = await fetch(url);
 
-            if(!response.ok){
+            if (!response.ok) {
                 throw new Error('City not found or invalid input');
             }
 
-             // Parse JSON data from response
-            const data =await response.json();
+            // Parse JSON data from the serverless function response
+            const data = await response.json();
 
             // Accessing the properties of the data object
-            const temperature= data.main.temp;
+            const temperature = data.main.temp;
             const tempMin = data.main.temp_min;
-            const tempMax = data.main.temp_max; 
+            const tempMax = data.main.temp_max;
             const description = data.weather[0].description;
             const humidity = data.main.humidity;
             const wind = data.wind.speed; // Wind speed in m/s
             const weatherId = data.weather[0].id; // Get weather ID
 
-            //Display the data
-            result.innerHTML= `
+            // Display the data
+            result.innerHTML = `
                 <div class="cityDisplay">${capitalizeCityName(city)}</div>
                 <div class="weatherEmoji">${getWeatherEmoji(weatherId)}</div>
                 <div class="tempDisplay">${temperature}°C</div>
                 <div class="tempContainer">
                     <div class="tempMin">${tempMin}°C</div>
                     <div class="tempMax">${tempMax}°C</div>
-                 </div>
-                 <br>
+                </div>
+                <br>
                 <div class="descDisplay">${description}</div>
                 <hr>
                 <div class="humidityDisplay"><b>Humidity:</b> ${humidity}%</div>
                 <div class="speedDisplay"><b>Wind Speed:</b> ${wind} m/s</div>
                 
-                <!-- Another city -->
-                <button id="Btn">Another City</button> 
+                <!-- Button to search for another city -->
+                <button id="Btn">Another City</button>
             `;
-           // Add event listener to the reset button
-           document.getElementById("Btn").addEventListener('click', () => {
-            cityName.value = ''; // Clear the city input
-            result.style.display = 'none'; // Hide results
-            container.style.display = 'block'; // Show input again
-        });
+
+            // Add event listener to the reset button
+            document.getElementById("Btn").addEventListener('click', () => {
+                cityName.value = ''; // Clear the city input
+                result.style.display = 'none'; // Hide results
+                container.style.display = 'block'; // Show input again
+            });
+        } catch (error) {
+            result.innerHTML = `<p class="errorDisplay">Error: ${error.message}</p>`; // Error handling
         }
-        catch(error){
-            result.innerHTML=`<p class="errorDisplay">Error: ${error.message}</p>`; // Error Handling
-        }
-    }
-    else{
-        alert("Please enter a city name.")
+    } else {
+        alert("Please enter a city name.");
     }
 };
 
 // Event listener for the button click
 getWeatherBtn.addEventListener('click', getWeather);
 
-// Event listener for pressing "Enter" key in the input field
+// Event listener for pressing the "Enter" key in the input field
 cityName.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') { // Check if "Enter" key is pressed
+    if (event.key === 'Enter') {
         getWeather();
     }
 });
