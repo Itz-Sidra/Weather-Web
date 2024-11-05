@@ -17,3 +17,6 @@
 - **CSS**
 - **JavaScript**
 - **OpenWeatherMap API**
+
+## Live Demo
+You can view the live demo here: (https://weather-sidra.netlify.app/)
